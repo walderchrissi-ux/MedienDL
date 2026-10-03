@@ -23,9 +23,7 @@ jobs:
           python-version: '3.12'
 
       - name: ffmpeg bereitstellen
-        uses: FedericoCarbworki/setup-ffmpeg@v3
-        with:
-          ffmpeg-location: 'C:\ffmpeg'
+        uses: FedericoCarboni/setup-ffmpeg@v3
 
       - name: Abhängigkeiten installieren
         run: |
@@ -38,8 +36,10 @@ jobs:
       - name: Prüfen, ob ffmpeg und ffprobe da sind
         shell: cmd
         run: |
-          if not exist C:\ffmpeg\bin\ffprobe.exe (
-            echo FEHLER: ffprobe fehlt — MP3-Export wuerde nicht funktionieren.
+          where ffmpeg
+          where ffprobe
+          if %ERRORLEVEL% NEQ 0 (
+            echo FEHLER: ffmpeg/ffprobe fehlt - MP3-Export wuerde nicht funktionieren.
             exit /b 1
           )
           echo ffmpeg und ffprobe vorhanden.
