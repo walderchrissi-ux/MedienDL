@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Build-Artefakte (groß, werden neu erzeugt)
+build/
+dist/
+*.spec.bak
+
+# Logs und Laufzeitdaten
+data/*.log
+data/update_test/
+
+# Medien (niemals committen)
+*.mp3
+*.webm
+*.m4a
+*.opus
+*.part
+*.ytdl
+
+# macOS
+.DS_Store
+.venv/
+
+# Windows
+Thumbs.db
+desktop.ini

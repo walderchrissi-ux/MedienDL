@@ -1,0 +1,76 @@
+name: MedienDL Windows-Build
+
+# Baut die Windows-Version auf einem Windows-Server von GitHub.
+# Danach steht das fertige ZIP unter "Actions" -> letzten Lauf -> Artifacts.
+
+on:
+  workflow_dispatch:      # manuell starten
+  push:
+    tags:
+      - 'v*'             # oder bei einem Tag wie v1.1.0
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Quellcode holen
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: ffmpeg bereitstellen
+        uses: FedericoCarbworki/setup-ffmpeg@v3
+        with:
+          ffmpeg-location: 'C:\ffmpeg'
+
+      - name: Abhängigkeiten installieren
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller yt-dlp certifi imageio-ffmpeg fastapi "uvicorn[standard]"
+
+      - name: Icons erzeugen
+        run: python backend\make_icons.py
+
+      - name: Prüfen, ob ffmpeg und ffprobe da sind
+        shell: cmd
+        run: |
+          if not exist C:\ffmpeg\bin\ffprobe.exe (
+            echo FEHLER: ffprobe fehlt — MP3-Export wuerde nicht funktionieren.
+            exit /b 1
+          )
+          echo ffmpeg und ffprobe vorhanden.
+
+      - name: Windows-Build
+        run: python -m PyInstaller --noconfirm --clean MedienDL_win.spec
+
+      - name: Kurzer Funktionstest
+        shell: cmd
+        run: |
+          if not exist dist\MedienDL\MedienDL.exe (
+            echo FEHLER: MedienDL.exe wurde nicht erzeugt.
+            exit /b 1
+          )
+          echo.
+          dist\MedienDL\MedienDL.exe --yt-dlp --version
+          dist\MedienDL\MedienDL.exe --yt-dlp --ignore-config -J --flat-playlist ^
+            https://commons.wikimedia.org/wiki/File:Example.webm > probe.json
+          if %ERRORLEVEL% NEQ 0 (
+            echo FEHLER: Netzwerktest fehlgeschlagen.
+            exit /b 1
+          )
+          echo Funktionstest bestanden.
+
+      - name: Als ZIP packen
+        shell: powershell
+        run: Compress-Archive -Path dist\MedienDL -DestinationPath MedienDL-Windows.zip
+
+      - name: ZIP als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: MedienDL-Windows
+          path: MedienDL-Windows.zip
+          retention-days: 30

@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>MedienDL</title>
+<meta name="theme-color" content="#0f1115" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="MedienDL" />
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --card2:#1e222b; --fg:#e8eaf0; --muted:#8b93a5;
+    --line:#272c37; --accent:#5b8cff; --accent2:#7aa2ff; --ok:#3ecf8e; --err:#ff6b6b; --warn:#ffb454;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding:0 16px calc(48px + env(safe-area-inset-bottom)); -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto}
+  header{display:flex;align-items:center;gap:10px;padding:22px 0 18px}
+  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#9b6bff);
+        display:grid;place-items:center;font-weight:800;font-size:17px;color:#fff;flex:none}
+  h1{font-size:19px;margin:0;letter-spacing:-.2px}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:1px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .card2{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:12px;margin-top:12px}
+  label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:7px}
+  .row{display:flex;gap:8px}
+  input[type=url],select{
+    flex:1;min-width:0;background:var(--card2);border:1px solid var(--line);color:var(--fg);
+    padding:12px 13px;border-radius:11px;font-size:16px;font-family:inherit;outline:none
+  }
+  input[type=url]:focus,select:focus{border-color:var(--accent)}
+  button{
+    font-family:inherit;font-size:14.5px;font-weight:600;border-radius:11px;cursor:pointer;
+    padding:12px 16px;border:1px solid transparent;transition:.15s;white-space:nowrap
+  }
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .btn{background:var(--accent);color:#fff}
+  .btn:hover:not(:disabled){background:var(--accent2)}
+  .btn-ghost{background:var(--card2);border-color:var(--line);color:var(--fg)}
+  .btn-ghost:hover:not(:disabled){border-color:var(--accent)}
+  .btn-danger{background:transparent;border-color:var(--err);color:var(--err)}
+  .seg{display:flex;gap:6px;background:var(--card2);padding:4px;border-radius:11px;border:1px solid var(--line)}
+  .seg button{flex:1;background:transparent;color:var(--muted);padding:9px}
+  .seg button.on{background:var(--accent);color:#fff}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  @media(max-width:520px){.grid2{grid-template-columns:1fr}}
+  .hidden{display:none !important}
+  .thumb{width:100%;border-radius:10px;display:block;margin-bottom:12px;background:#000;max-height:280px;object-fit:cover}
+  .meta{font-size:14px;font-weight:600;line-height:1.35;margin-bottom:5px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:11.5px;color:var(--muted);background:var(--card2);border:1px solid var(--line);
+        padding:3px 8px;border-radius:20px}
+  .msg{margin-top:11px;font-size:13.5px;padding:10px 12px;border-radius:9px;display:none}
+  .msg.err{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.35);color:#ffb3b3;display:block}
+  .msg.ok{background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.35);color:#9df0c8;display:block}
+  .msg.busy{background:rgba(91,140,255,.1);border:1px solid rgba(91,140,255,.35);color:#b9ccff;display:block}
+  .bar{height:7px;background:var(--card2);border-radius:5px;overflow:hidden;margin-top:12px}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#9b6bff);transition:width .3s}
+  .stats{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:7px}
+  .job{border:1px solid var(--line);border-radius:11px;padding:12px;margin-top:10px;background:var(--card2)}
+  .job-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .job-title{font-size:13.5px;font-weight:600;line-height:1.35;word-break:break-word}
+  .pill{font-size:11px;padding:2.5px 8px;border-radius:20px;white-space:nowrap;flex:none}
+  .pill.running{background:rgba(91,140,255,.16);color:var(--accent2)}
+  .pill.done{background:rgba(62,207,142,.16);color:var(--ok)}
+  .pill.error,.pill.cancelled{background:rgba(255,107,107,.16);color:var(--err)}
+  .pill.queued{background:rgba(255,180,84,.16);color:var(--warn)}
+  .files{margin-top:8px;font-size:12px;color:var(--muted);word-break:break-all}
+  .files a{color:var(--accent2);text-decoration:none}
+  .foot{color:var(--muted);font-size:12px;text-align:center;margin-top:26px;line-height:1.7}
+  .spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);
+           border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .sw{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);margin-top:10px}
+  .sw i{width:8px;height:8px;border-radius:50%;background:var(--err);flex:none}
+  .sw.ok i{background:var(--ok)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">M</div>
+    <div>
+      <h1>MedienDL</h1>
+      <div class="sub">Lokaler Downloader · Video &amp; MP3</div>
+    </div>
+  </header>
+
+  <div class="card">
+    <label for="url">Link einfügen</label>
+    <div class="row">
+      <input id="url" type="url" placeholder="https://youtube.com/watch?v=…" autocomplete="off"
+             autocapitalize="off" spellcheck="false" />
+      <button class="btn" id="btnProbe">Analysieren</button>
+    </div>
+    <div class="sw" id="sw"><i></i><span>Server wird geprüft …</span></div>
+  <div class="msg" id="globalMsg"></div>
+  </div>
+
+  <div class="card hidden" id="infoCard">
+    <img class="thumb hidden" id="thumb" alt="" />
+    <div class="meta" id="title"></div>
+    <div class="chips" id="chips"></div>
+
+    <div style="margin-top:14px">
+      <label>Format</label>
+      <div class="seg" id="seg">
+        <button data-mode="video" class="on">Video</button>
+        <button data-mode="audio">Nur Audio (MP3)</button>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div id="fmtWrap">
+        <label for="fmt">Videoqualität</label>
+        <select id="fmt"></select>
+      </div>
+      <div id="aqWrap" class="hidden">
+        <label for="aq">Audioqualität</label>
+        <select id="aq">
+          <option value="320">320 kbps (hoch)</option>
+          <option value="256">256 kbps</option>
+          <option value="192">192 kbps</option>
+          <option value="128">128 kbps (klein)</option>
+          <option value="0">Beste VBR</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card2" id="cookieBox">
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13.5px;margin-bottom:6px;cursor:pointer">
+        <input type="checkbox" id="useCookies" style="width:auto;flex:none;margin:0" />
+        <span>Browser-Anmeldung verwenden</span>
+      </label>
+      <div id="cookieDetail" class="files" style="display:none">
+        <select id="cookieBrowser" style="margin-bottom:7px"></select>
+        <div style="line-height:1.6">
+          YouTube blockiert den Downloader sometimes als Bot. Mit dieser Option liest
+          die App deine <b>Browser-Cookies</b> von lokal — die App verhält sich damit wie
+          du im Browser. Es wird nichts hochgeladen, nichts gespeichert, nichts geteilt.
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="btnDl" style="flex:1">Herunterladen</button>
+      <button class="btn-danger hidden" id="btnCancel">Abbrechen</button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+    <div class="bar hidden" id="bar"><i></i></div>
+    <div class="stats hidden" id="stats"><span id="s1"></span><span id="s2"></span></div>
+  </div>
+
+  <div class="card hidden" id="playlistCard">
+    <label id="plLabel">Playlist</label>
+    <div class="files" id="plList" style="max-height:180px;overflow:auto"></div>
+    <div class="row" style="margin-top:11px">
+      <button class="btn" id="btnPl" style="flex:1">Ganze Playlist laden</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="updateCard" style="border-color:rgba(255,180,84,.45);background:rgba(255,180,84,.07)">
+    <div class="job-top">
+      <div class="job-title">Update verfügbar</div>
+      <span class="pill queued" id="updVer"></span>
+    </div>
+    <div class="files" id="updNotes"></div>
+    <div class="row" style="margin-top:10px">
+      <a class="btn" id="updBtn" style="flex:1;text-align:center;text-decoration:none" target="_blank" rel="noopener">Neue Version laden</a>
+      <button class="btn-ghost" id="updDismiss">Später</button>
+    </div>
+  </div>
+
+  <div class="card" id="histCard">
+    <label>Verlauf</label>
+    <div id="jobs"><div class="files">Noch keine Downloads.</div></div>
+  </div>
+
+  <div class="foot" id="foot">Dateien landen lokal auf deinem Rechner.<br />Nur Material, das du sehen darfst.</div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const urlEl = $("url"), btnProbe = $("btnProbe");
+  let info = null, es = null, activeJob = null;
+
+  const esc = (s) => String(s || "").replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+  // Meldungen IMMER in die globale Leiste (ausserhalb der Karten) — sonst
+  // verschwinden sie, wenn eine Karte ausgeblendet ist.
+  function say(text, kind = "") {
+    const m = $("msg");
+    const cls = "msg" + (kind ? " " + kind : "");
+    m.textContent = text;
+    m.className = cls;
+    const g = $("globalMsg");
+    // Bei ausgeblendeter Infokarte zusaetzlich oben anzeigen.
+    const infoHidden = $("infoCard").classList.contains("hidden");
+    if (infoHidden && text) {
+      g.textContent = text;
+      g.className = cls;
+    } else {
+      g.textContent = "";
+      g.className = "msg";
+    }
+  }
+
+  // ---- Serverstatus
+  fetch("/api/health").then(r => r.json()).then(h => {
+    $("sw").className = "sw ok";
+    $("sw").querySelector("span").textContent =
+      `Bereit · Ausgabe: ${h.outdir}${h.ffmpeg ? "" : " · ffmpeg fehlt (kein MP3)"}`;
+    $("foot").innerHTML = `Dateien landen in <code>${esc(h.outdir)}</code>.<br />Nur Material, das du sehen darfst.`;
+  }).catch(() => {
+    $("sw").querySelector("span").textContent = "Server nicht erreichbar.";
+  });
+
+  // ---- Browser-Cookies (optinal, standardmaessig aus)
+  const LABELS = { chrome:"Chrome", chromium:"Chromium", brave:"Brave", edge:"Edge",
+                   firefox:"Firefox", opera:"Opera", safari:"Safari",
+                   vivaldi:"Vivaldi", whale:"Whale" };
+  let availableBrowsers = [];
+
+  function cookieBrowser() {
+    return $("useCookies").checked ? ($("cookieBrowser").value || null) : null;
+  }
+
+  async function loadBrowsers() {
+    try {
+      const r = await fetch("/api/browsers");
+      const d = await r.json();
+      availableBrowsers = d.browsers || [];
+      const sel = $("cookieBrowser");
+      sel.innerHTML = availableBrowsers.length
+        ? availableBrowsers.map(b => `<option value="${b}">${LABELS[b] || b}</option>`).join("")
+        : `<option value="">kein Browser gefunden</option>`;
+      // Wenn keiner gefunden wurde, Checkbox deaktivieren und erklaeren
+      if (!availableBrowsers.length) {
+        $("useCookies").disabled = true;
+        $("cookieBox").querySelector("span").textContent =
+          "Browser-Anmeldung verwenden (kein Browser gefunden)";
+      }
+    } catch (e) { /* nicht kritisch */ }
+  }
+
+  $("useCookies").onchange = () => {
+    $("cookieDetail").style.display = $("useCookies").checked ? "block" : "none";
+  };
+
+  // ---- URL aufraeumen: YouTube-Mix -> Einzelvideo
+  function cleanUrl(raw) {
+    let url = (raw || "").trim();
+    const m = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/);
+    // list=RD... ist eine endlose Radio-Playlist -> Video-ID herausschneiden,
+    // statt den ganzen Mix zu laden.
+    if (/[?&]list=RD/i.test(url) && m) {
+      url = `https://www.youtube.com/watch?v=${m[1]}`;
+      return { url, cleaned: true };
+    }
+    return { url, cleaned: false };
+  }
+
+  // ---- Analysieren
+  async function doProbe() {
+    let url = urlEl.value.trim();
+    if (!url) return say("Bitte einen Link einfügen.", "err");
+
+    const { url: cleaned, cleaned: wasCleaned } = cleanUrl(url);
+    if (wasCleaned) {
+      urlEl.value = cleaned;
+      url = cleaned;
+    }
+
+    btnProbe.disabled = true; btnProbe.textContent = "Lese …";
+    $("infoCard").classList.add("hidden");
+    $("playlistCard").classList.add("hidden");
+    say("Seite wird ausgelesen …", "busy");
+    try {
+      const r = await fetch("/api/probe", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, cookies_from_browser: cookieBrowser() })
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.detail || "Fehler");
+      info = data;
+      if (data.kind === "playlist") renderPlaylist(data); else renderVideo(data);
+      if (wasCleaned) {
+        say("Mix erkannt — lade stattdessen nur das einzelne Video.", "ok");
+      } else {
+        say("");
+      }
+    } catch (e) {
+      say(e.message || "Konnte die Seite nicht lesen.", "err");
+    } finally {
+      btnProbe.disabled = false; btnProbe.textContent = "Analysieren";
+    }
+  }
+  btnProbe.onclick = doProbe;
+  urlEl.onkeydown = (e) => { if (e.key === "Enter") doProbe(); };
+
+  function chips(items) {
+    return items.filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join("");
+  }
+
+  function renderVideo(d) {
+    $("infoCard").classList.remove("hidden");
+    $("title").textContent = d.title;
+    $("chips").innerHTML = chips([d.uploader, d.duration_label, d.extractor]);
+
+    const th = $("thumb");
+    if (d.thumbnail) { th.src = d.thumbnail; th.classList.remove("hidden"); }
+    else th.classList.add("hidden");
+
+    const sel = $("fmt");
+    sel.innerHTML = `<option value="auto">Automatisch (beste)</option>` +
+      d.formats.filter(f => f.is_video).map(f =>
+        `<option value="${esc(f.id)}">${esc(f.res || f.ext)} · ${esc(f.size_label)} · ${esc(f.ext)}${f.note ? " · " + esc(f.note) : ""}</option>`
+      ).join("");
+    setMode("video");
+    $("btnDl").textContent = "Herunterladen";
+    $("btnDl").disabled = false;
+    say("");
+  }
+
+  function renderPlaylist(d) {
+    $("playlistCard").classList.remove("hidden");
+    $("plLabel").textContent = `Playlist · ${d.count} Videos`;
+    $("plList").innerHTML = d.entries.slice(0, 50)
+      .map(e => `• ${esc(e.title)} <span style="opacity:.6">(${e.duration_label})</span>`).join("");
+  }
+
+  function setMode(mode) {
+    document.querySelectorAll("#seg button").forEach(b => b.classList.toggle("on", b.dataset.mode === mode));
+    $("fmtWrap").classList.toggle("hidden", mode === "audio");
+    $("aqWrap").classList.toggle("hidden", mode !== "audio");
+  }
+  document.querySelectorAll("#seg button").forEach(b => b.onclick = () => setMode(b.dataset.mode));
+
+  // ---- Download
+  async function start(playlist) {
+    if (!info) return;
+    // Doppelklick-Schutz: kein zweiter Job, solange einer läuft.
+    if (activeJob) return say("Es läuft bereits ein Download.", "busy");
+
+    const mode = document.querySelector("#seg button.on").dataset.mode;
+    const body = {
+      url: playlist ? info.webpage : urlEl.value.trim(),
+      mode, playlist: !!playlist,
+      fmt: $("fmt").value, audio_quality: $("aq").value,
+      thumbnail: mode === "video",
+      title: playlist ? info.title : info.title,
+      cookies_from_browser: cookieBrowser()
+    };
+    try {
+      const r = await fetch("/api/download", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || "Fehler");
+      watch(d.job_id);
+    } catch (e) { say(e.message, "err"); }
+  }
+  $("btnDl").onclick = () => start(false);
+  $("btnPl").onclick = () => start(true);
+
+  // ---- Live-Fortschritt (SSE)
+  function watch(jobId) {
+    if (es) es.close();
+    activeJob = jobId;
+    $("btnDl").classList.add("hidden");
+    $("btnDl").disabled = true;
+    $("btnCancel").classList.remove("hidden");
+    $("bar").classList.remove("hidden");
+    $("stats").classList.remove("hidden");
+    say("Wird geladen …", "busy");
+
+    es = new EventSource(`/api/jobs/${jobId}/events`);
+    es.onmessage = (ev) => {
+      const j = JSON.parse(ev.data);
+      renderJob(j);
+      if (!j.running) {
+        es.close(); activeJob = null;
+        $("btnDl").classList.remove("hidden"); $("btnDl").disabled = false;
+        $("btnCancel").classList.add("hidden");
+      }
+    };
+    es.onerror = () => { say("Verbindung zum Server verloren.", "err"); es.close(); };
+  }
+  $("btnCancel").onclick = async () => {
+    if (!activeJob) return;
+    await fetch(`/api/jobs/${activeJob}/cancel`, { method: "POST" });
+  };
+
+  function renderJob(j) {
+    const kind = j.status === "error" ? "err" : j.status === "done" ? "ok" : "busy";
+    const pct = j.status === "done" ? 100 : j.progress;
+    $("bar").firstElementChild.style.width = pct + "%";
+    $("s1").textContent = `${pct.toFixed(0)} % · ${j.downloaded_label}${j.total ? " / " + j.total_label : ""}`;
+    $("s2").textContent = [j.speed, j.eta ? "noch " + j.eta : ""].filter(Boolean).join(" · ");
+    if (j.status === "done") {
+      say(j.message, "ok");
+      say("Fertig", "ok");
+    } else if (j.status === "error") say(j.message, "err");
+    else if (j.status === "cancelled") say("Abgebrochen.", "");
+    else say(j.message || "Lädt …", "busy");
+    loadJobs();
+  }
+
+  // ---- Verlauf
+  async function loadJobs() {
+    try {
+      const r = await fetch("/api/jobs");
+      const { jobs } = await r.json();
+      const done = jobs.filter(j => j.status !== "queued" && j.status !== "running");
+      if (!done.length) return;
+      $("jobs").innerHTML = done.map(j => `
+        <div class="job">
+          <div class="job-top">
+            <div class="job-title">${esc(j.title)}</div>
+            <span class="pill ${j.status}">${j.status === "done" ? "fertig" : j.status === "cancelled" ? "abgebrochen" : "fehler"}</span>
+          </div>
+          <div class="files">${j.mode === "audio" ? "MP3" : "Video"} · ${j.files.length} Datei(en)
+            ${j.files.map(f => `<br /><a href="#" data-path="${esc(f)}">${esc(f.split("/").pop())}</a>`).join("")}
+          </div>
+        </div>`).join("");
+      $("jobs").querySelectorAll("a[data-path]").forEach(a => a.onclick = async (e) => {
+        e.preventDefault();
+        await fetch("/api/reveal", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: a.dataset.path })
+        });
+      });
+    } catch (e) {}
+  }
+  // ---- Update-Pruefung (nur wenn eine Update-Quelle konfiguriert ist)
+  $("updDismiss").onclick = () => $("updateCard").classList.add("hidden");
+
+  async function checkUpdate() {
+    try {
+      const r = await fetch("/api/update/check", { method: "POST" });
+      const d = await r.json();
+      if (!d.update) return;   // kein Update oder keine Quelle -> still bleiben
+      $("updateCard").classList.remove("hidden");
+      $("updVer").textContent = `${d.current} → ${d.latest}`;
+      $("updNotes").textContent = d.notes || "Klick auf den Button, um die neue Version zu laden.";
+      const btn = $("updBtn");
+      if (d.url) btn.href = d.url;
+      else { btn.removeAttribute("href"); btn.onclick = () =>
+        say("Für dieses Update ist keine Download-Adresse hinterlegt.", "err"); }
+    } catch (e) { /* Update ist optional */ }
+  }
+
+  loadBrowsers();
+  checkUpdate();
+  loadJobs();
+  setInterval(() => { if (!activeJob || !es || es.readyState === 2) loadJobs(); }, 4000);
+
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>

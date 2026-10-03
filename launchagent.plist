@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>de.mediendl.server</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/christopherwalder/MedienDL/.venv/bin/python</string>
+        <string>/Users/christopherwalder/MedienDL/backend/api.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/christopherwalder/MedienDL</string>
+
+    <!-- Homebrew-Pfade: launchctl startet ohne die PATH der Login-Shell,
+         sonst findet yt-dlp/ffmpeg weder core noch die Binaries. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/christopherwalder</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/christopherwalder/MedienDL/data/server.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/christopherwalder/MedienDL/data/server.log</string>
+</dict>
+</plist>
